@@ -4,7 +4,7 @@
   "private": true,
   "description": "WebObsidian desktop app (Electron shell around the self-hosted server)",
   "author": "xnohat <xnohat@gmail.com>",
-  "homepage": "https://github.com/xnohat/webobsidian",
+  "homepage": "https://github.com/vladamirjenibloson-hue/webobsidian",
   "license": "MIT",
   "main": "dist/main.js",
   "scripts": {
@@ -82,7 +82,7 @@
     "publish": [
       {
         "provider": "github",
-        "owner": "xnohat",
+        "owner": "vladamirjenibloson-hue",
         "repo": "webobsidian"
       }
     ]
