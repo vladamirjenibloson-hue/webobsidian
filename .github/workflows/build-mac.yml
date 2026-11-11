@@ -9,7 +9,11 @@ permissions:
 jobs:
   build-mac:
     name: Build unsigned macOS installers (arm64 + x64)
-    runs-on: macos-latest
+    # Intel runner on purpose: `macos-latest` (arm64) has repeatedly failed to
+    # acquire here ("job was not acquired by Runner of type hosted", then
+    # cancelled at 15m with zero steps run). electron-builder can produce both
+    # arm64 and x64 artifacts from an Intel host, so this is not a downgrade.
+    runs-on: macos-13
     steps:
       - name: Check out source
         uses: actions/checkout@v4
