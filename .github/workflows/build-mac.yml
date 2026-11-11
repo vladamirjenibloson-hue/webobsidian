@@ -26,12 +26,41 @@ jobs:
       - name: Build web and server
         run: npm run build
 
+      # `npm --workspace desktop run dist` does NOT fail the job when
+      # electron-builder fails: npm reports the exit code but the shell step can
+      # still be recorded as successful while no installers are produced. Run the
+      # two steps explicitly and tee the output so a failure explains itself in
+      # the job summary (Actions logs are not always retrievable from tooling).
+      - name: Build desktop bundle
+        run: node scripts/build.mjs
+        working-directory: desktop
+
       - name: Package macOS DMG and ZIP
-        run: npm --workspace desktop run dist
+        working-directory: desktop
         env:
           CSC_IDENTITY_AUTO_DISCOVERY: false
+        run: |
+          set -o pipefail
+          npx electron-builder 2>&1 | tee /tmp/packager.log
+
+      - name: Show installer output
+        if: always()
+        run: |
+          {
+            echo '### Packaging result'
+            echo '```'
+            ls -lh desktop/release 2>/dev/null || echo 'desktop/release does not exist — packaging produced nothing'
+            echo '```'
+            if [ -f /tmp/packager.log ]; then
+              echo '### Last 60 lines of electron-builder output'
+              echo '```'
+              tail -n 60 /tmp/packager.log
+              echo '```'
+            fi
+          } >> "$GITHUB_STEP_SUMMARY"
 
       - name: Upload installers
+        if: success()
         uses: actions/upload-artifact@v4
         with:
           name: WebObsidian-macOS
