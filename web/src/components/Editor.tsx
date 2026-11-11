@@ -40,6 +40,7 @@ import {
 } from '../lib/livePreview';
 import { renderMarkdown } from '../lib/markdown';
 import { setActiveEditor } from '../lib/activeEditor';
+import { autoRtl } from '../lib/rtl';
 import { api } from '../lib/api';
 
 const titleOf = (path: string | null) =>
@@ -272,6 +273,7 @@ export default function Editor() {
         // structure styling is owned by the Live Preview decorations.
         syntaxHighlighting(obsidianHighlightStyle),
         EditorView.lineWrapping,
+        autoRtl,
         // Live Preview drives BOTH live and reading; reading is just read-only.
         livePreviewState.init(() => isMd && viewMode !== 'source'),
         livePreviewReadonly.init(() => viewMode === 'reading'),

@@ -1759,3 +1759,38 @@ audio.media-embed { display: block; width: min(100%, 480px); max-width: 100%; ma
 }
 .image-lightbox-close:hover { background: rgba(255, 255, 255, .18); }
 .image-lightbox-close svg { width: 22px; height: 22px; }
+
+/* ---------------- Text direction (Obsidian 1.6+ parity) ----------------
+   `dir` is set per line in the editor (web/src/lib/rtl.ts) and per block in the
+   rendered markdown (web/src/lib/markdown.ts). Alignment cannot come from `dir`
+   alone: the editor's lines are full-width block children of an LTR scroller, so
+   `text-align: start` is always the left edge. Everything below is the explicit
+   right-alignment Obsidian's reading view uses for RTL content.
+   Logical properties keep lists, quotes and padding mirrored without a second
+   rule per element; the physical overrides are only where an existing rule
+   hard-codes `left`. */
+
+/* Editor: RTL lines right-align, and so do their wrapped continuations. */
+.cm-editor .cm-line[dir="rtl"] { text-align: right; }
+.cm-editor .cm-line[dir="rtl"] .cm-bidi-isolate { direction: ltr; unicode-bidi: isolate; }
+/* Code and raw frontmatter are always drawn LTR regardless of the note. */
+.cm-editor .cm-line[dir="ltr"] .cm-bidi-isolate { direction: ltr; unicode-bidi: isolate; }
+.cm-editor .cm-line.HyperMD-codeblock,
+.cm-editor .cm-line.HyperMD-codeblock-bg,
+.cm-editor .cm-line.HyperMD-table-row { text-align: left; }
+
+/* Reading/split preview: follow each block's dir attribute. */
+.markdown-preview [dir="rtl"] { text-align: right; }
+.markdown-preview [dir="rtl"] ul,
+.markdown-preview [dir="rtl"] ol { padding-left: 0; padding-right: 1.6em; }
+.markdown-preview [dir="rtl"] li::marker { text-align: right; }
+.markdown-preview [dir="rtl"] blockquote {
+  border-left: 0;
+  border-right: 3px solid var(--interactive-accent);
+  padding: 2px 24px 2px 0;
+}
+.markdown-preview [dir="rtl"] th,
+.markdown-preview [dir="rtl"] td { text-align: right; }
+.markdown-preview table[dir="rtl"] { margin-left: auto; margin-right: 0; }
+.markdown-preview [dir="rtl"] pre,
+.markdown-preview [dir="rtl"] code { direction: ltr; text-align: left; }
