@@ -56,6 +56,11 @@ jobs:
               echo '```'
               tail -n 60 /tmp/packager.log
               echo '```'
+              # Annotations are readable over the REST API, unlike the raw job
+              # log, so surface the actual error lines there too.
+              grep -E '⨯|Error:|error |ERR_' /tmp/packager.log | tail -n 8 | while IFS= read -r line; do
+                echo "::error title=electron-builder::${line//::/-}"
+              done
             fi
           } >> "$GITHUB_STEP_SUMMARY"
 
