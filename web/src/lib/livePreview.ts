@@ -2659,14 +2659,21 @@ export const livePreviewTheme = EditorView.baseTheme({
     textDecoration: 'none !important',
   },
   // Inline title = h1 alias (§19).
+  //
+  // No vertical MARGIN on this block widget. CodeMirror's selection layer has a
+  // long-standing measurement bug where a block widget sitting between the
+  // selection's start and end is measured with its margin counted at the wrong
+  // end: selecting the paragraph right after this title painted 22px PAST the
+  // last line (see docs/arabic-selection-bug.md). Padding keeps the same visual
+  // gap and is measured correctly, so the block box includes it.
   '.cm-inline-title': {
     fontSize: 'var(--h1-size)',
     fontWeight: 'var(--h1-weight)',
     lineHeight: 'var(--line-height-tight)',
     letterSpacing: '-0.015em',
     color: 'var(--text-normal)',
-    margin: '0 0 0.5em',
-    padding: '0',
+    margin: '0',
+    padding: '0 0 0.5em',
   },
   '.cm-em': { fontStyle: 'italic' },
   '.cm-strike': { textDecoration: 'line-through' },

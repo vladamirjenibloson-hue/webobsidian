@@ -12,6 +12,8 @@ let active: EditorView | null = null;
 
 export function setActiveEditor(v: EditorView | null) {
   active = v;
+  // Debug hook for automated tests: lets a harness drive the real view.
+  (window as any).__cm = v;
 }
 export function getActiveEditor(): EditorView | null {
   return active;
