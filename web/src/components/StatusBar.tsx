@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useStore } from '../lib/store';
 import { api } from '../lib/api';
 import Icon from './Icon';
+import FontSizeControl from './FontSizeControl';
 
 export default function StatusBar() {
   const content = useStore((s) => s.content);
@@ -49,6 +50,7 @@ export default function StatusBar() {
       {dirty && <span>Saving…</span>}
       {isText && <span>{words} words</span>}
       {isText && <span>{content.length} characters</span>}
+      <FontSizeControl />
       <span className="clickable" title="Git sync" onClick={sync}>
         <Icon name="refresh-cw" size={13} style={syncing ? { animation: 'spin 1s linear infinite' } : undefined} />
         {gitLabel}

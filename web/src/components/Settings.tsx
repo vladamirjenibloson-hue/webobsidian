@@ -406,10 +406,23 @@ function Appearance({ s }: { s: any }) {
   // Font size applies live (no reload) and persists once you stop dragging.
   const [fontSize, setFontSize] = useState<number>(Number(s.ui.fontSize) || readStoredFontSize());
   const fontTimer = useRef<number | undefined>(undefined);
+
+  // Follow changes made from the status-bar control while this panel is open.
+  useEffect(() => {
+    const onSync = () => setFontSize(readStoredFontSize());
+    window.addEventListener('webobsidian:font-size', onSync);
+    window.addEventListener('storage', onSync);
+    return () => {
+      window.removeEventListener('webobsidian:font-size', onSync);
+      window.removeEventListener('storage', onSync);
+    };
+  }, []);
   const changeFontSize = (n: number) => {
     const size = applyFontSize(n);
     setFontSize(size);
     storeFontSize(size);
+    // Keep the status-bar control's label in sync (it listens for this).
+    window.dispatchEvent(new Event('webobsidian:font-size'));
     window.clearTimeout(fontTimer.current);
     fontTimer.current = window.setTimeout(() => void api.putSettings({ ui: { fontSize: size } }), 400);
   };
