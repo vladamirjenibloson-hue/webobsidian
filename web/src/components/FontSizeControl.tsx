@@ -3,11 +3,18 @@ import { api } from '../lib/api';
 import {
   applyFontSize,
   clampFontSize,
-  readStoredFontSize,
+  currentFontSize,
   storeFontSize,
   FONT_SIZE_MIN,
   FONT_SIZE_MAX,
   FONT_SIZE_DEFAULT,
+  applyLineWidth,
+  clampWidth,
+  currentLineWidth,
+  storeLineWidth,
+  WIDTH_MIN,
+  WIDTH_MAX,
+  WIDTH_DEFAULT,
 } from '../lib/readingComfort';
 
 /**
@@ -22,12 +29,16 @@ import {
  * Applies live; writes are debounced because dragging fires many events.
  */
 export default function FontSizeControl() {
-  const [size, setSize] = useState<number>(() =>
-    clampFontSize(Number(localStorage.getItem('webobsidian:font-text-size')) || readStoredFontSize()),
-  );
+  // Seed from what is actually applied — App.tsx sets both variables from the
+  // server's settings before this mounts. localStorage is only the fallback.
+  const [size, setSize] = useState<number>(() => currentFontSize());
+  // Seed from what is actually applied (App.tsx sets it from the server before
+  // this mounts); localStorage is only a fallback.
+  const [width, setWidth] = useState<number>(() => currentLineWidth());
   const [open, setOpen] = useState(false);
   const wrap = useRef<HTMLDivElement>(null);
   const saveTimer = useRef<number | undefined>(undefined);
+  const widthTimer = useRef<number | undefined>(undefined);
 
   const persist = useCallback((n: number) => {
     window.clearTimeout(saveTimer.current);
@@ -47,8 +58,27 @@ export default function FontSizeControl() {
     [persist],
   );
 
+  /**
+   * Column width, in ch. Lives in Settings like the font size, so it follows
+   * you between browsers; localStorage is the synchronous copy used to apply it
+   * before the settings request lands (see App.tsx).
+   */
+  const setColumnWidth = useCallback(
+    (n: number) => {
+      const next = applyLineWidth(n);
+      setWidth(next);
+      storeLineWidth(next);
+      window.clearTimeout(widthTimer.current);
+      widthTimer.current = window.setTimeout(() => void api.putSettings({ ui: { lineWidth: next } }), 400);
+    },
+    [],
+  );
+
   /** Reset goes back to the stylesheet default, not to a magic number. */
-  const reset = () => set(FONT_SIZE_DEFAULT);
+  const reset = () => {
+    set(FONT_SIZE_DEFAULT);
+    setColumnWidth(WIDTH_DEFAULT);
+  };
 
   // Close on outside click and Escape.
   useEffect(() => {
@@ -84,7 +114,10 @@ export default function FontSizeControl() {
   // Settings slider, or another tab). Note this component also fires this event
   // itself — setSize() to the value it just rendered is a no-op re-render.
   useEffect(() => {
-    const onSync = () => setSize(readStoredFontSize());
+    const onSync = () => {
+      setSize(currentFontSize());
+      setWidth(currentLineWidth());
+    };
     window.addEventListener('storage', onSync);
     window.addEventListener('webobsidian:font-size', onSync as EventListener);
     return () => {
@@ -125,8 +158,28 @@ export default function FontSizeControl() {
               +
             </button>
           </div>
+          <div className="font-size-sub">Text width</div>
+          <div className="font-size-row">
+            <button className="font-size-step" onClick={() => setColumnWidth(width - 5)} aria-label="Narrower text column">
+              −
+            </button>
+            <input
+              type="range"
+              min={WIDTH_MIN}
+              max={WIDTH_MAX}
+              step={5}
+              value={width}
+              aria-label="Text width"
+              onChange={(e) => setColumnWidth(Number(e.target.value))}
+            />
+            <button className="font-size-step" onClick={() => setColumnWidth(width + 5)} aria-label="Wider text column">
+              +
+            </button>
+          </div>
           <div className="font-size-foot">
-            <span className="font-size-value">{size}px</span>
+            <span className="font-size-value">
+              {size}px · {width}ch
+            </span>
             <button className="text-button" onClick={reset}>
               Reset
             </button>

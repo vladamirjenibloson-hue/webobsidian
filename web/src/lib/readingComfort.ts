@@ -127,6 +127,17 @@ export function applyFontSize(n: number): number {
   return size;
 }
 
+/**
+ * The font size currently in effect, read back from the CSS variable — same
+ * reason as currentLineWidth(): the server's value is applied before the status
+ * bar control mounts, and localStorage can be stale or empty.
+ */
+export function currentFontSize(): number {
+  const applied = document.documentElement.style.getPropertyValue('--font-text-size').trim();
+  const match = /^(\d+(?:\.\d+)?)px$/.exec(applied);
+  return match ? clampFontSize(Number(match[1])) : readStoredFontSize();
+}
+
 export function readStoredFontSize(): number {
   const raw = localStorage.getItem(FONT_SIZE_KEY);
   return raw ? clampFontSize(Number(raw)) : FONT_SIZE_DEFAULT;
@@ -134,4 +145,54 @@ export function readStoredFontSize(): number {
 
 export function storeFontSize(n: number) {
   localStorage.setItem(FONT_SIZE_KEY, String(clampFontSize(n)));
+}
+
+/* ---- Text column width --------------------------------------------------- */
+
+/**
+ * How wide the note's text column is, in `ch` (the width of a "0" in the note's
+ * own font). A `ch` measure keeps characters-per-line constant as the font size
+ * changes, which is what Obsidian does — a px cap instead makes the column look
+ * progressively narrower as the text grows.
+ *
+ * 45ch is a very narrow measure for a phone, 90ch is the stylesheet default and
+ * about the widest that still reads comfortably; past that the eye has trouble
+ * finding the start of the next line.
+ */
+export const WIDTH_MIN = 45;
+export const WIDTH_MAX = 200;
+export const WIDTH_DEFAULT = 90;
+const WIDTH_KEY = 'webobsidian:line-width';
+
+export function clampWidth(n: number): number {
+  const v = Math.round(Number(n));
+  if (!Number.isFinite(v)) return WIDTH_DEFAULT;
+  return Math.min(WIDTH_MAX, Math.max(WIDTH_MIN, v));
+}
+
+/** Set `--file-line-width`; the `--file-line-width-max` px ceiling still applies. */
+export function applyLineWidth(ch: number): number {
+  const width = clampWidth(ch);
+  document.documentElement.style.setProperty('--file-line-width', `${width}ch`);
+  return width;
+}
+
+/**
+ * The width currently in effect, read back from the CSS variable. App.tsx
+ * applies the server's value before the control mounts, and localStorage may be
+ * stale (another browser changed it), so the DOM is the source of truth.
+ */
+export function currentLineWidth(): number {
+  const applied = document.documentElement.style.getPropertyValue('--file-line-width').trim();
+  const match = /^(\d+(?:\.\d+)?)ch$/.exec(applied);
+  return match ? clampWidth(Number(match[1])) : readStoredLineWidth();
+}
+
+export function readStoredLineWidth(): number {
+  const raw = localStorage.getItem(WIDTH_KEY);
+  return raw ? clampWidth(Number(raw)) : WIDTH_DEFAULT;
+}
+
+export function storeLineWidth(n: number) {
+  localStorage.setItem(WIDTH_KEY, String(clampWidth(n)));
 }

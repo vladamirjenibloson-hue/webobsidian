@@ -24,7 +24,13 @@
   --h4-size: 1.188em; --h5-size: 1.076em; --h6-size: 1em;
   --h1-weight: 700; --h2-weight: 600; --h3-weight: 600;
   --h4-weight: 600; --h5-weight: 600; --h6-weight: 600;
-  --file-line-width: 700px;
+  /* Width of the text column, in characters (of the note's own font), the way
+     Obsidian itself expresses it. A px cap made the column narrower and
+     narrower in relative terms as the font grew: at 16px, 700px fit ~85 latin
+     characters, at 32px only ~42 — half the window went to gutter. A ch cap
+     keeps the measure (characters per line) constant, so raising the font size
+     costs you lines, not column width. See --file-line-width below. */
+  --file-line-width: 90ch;
   --file-margins: 32px;
   --p-spacing: 1rem;
   --indent-size: 4;
@@ -433,7 +439,8 @@ body.wo-col-resizing .sidebar, body.wo-col-resizing .right-sidebar { transition:
    mode the caret stayed black on a #1e1e1e background. Driving it from the
    theme's own text colour is correct for both themes. */
 .cm-editor .cm-cursor, .cm-editor .cm-dropCursor { border-left-color: var(--caret-color) !important; }
-.markdown-source-view.is-readable-line-width .cm-content { max-width: var(--file-line-width); }
+.markdown-source-view.is-readable-line-width .cm-content {
+  max-width: var(--file-line-width); }
 .cm-editor .cm-line { padding: 0; }
 .cm-gutters { background: var(--background-primary) !important; border: 0 !important; color: var(--text-faint) !important; }
 .cm-activeLine { background: transparent !important; }
@@ -601,7 +608,7 @@ body.wo-col-resizing .sidebar, body.wo-col-resizing .right-sidebar { transition:
 
 /* Reading view */
 .markdown-preview { flex: 1; overflow-y: auto; padding: 28px 24px 40vh; line-height: 1.6; color: var(--text-normal); }
-.markdown-preview .preview-inner { max-width: 750px; margin: 0 auto; }
+.markdown-preview .preview-inner { max-width: var(--file-line-width); margin: 0 auto; }
 .markdown-preview .inline-title { font-size: var(--h1-size); font-weight: var(--h1-weight); letter-spacing: -0.015em;
   line-height: var(--line-height-tight); margin: 0 0 0.5em; color: var(--text-normal); }
 .markdown-preview h1, .markdown-preview h2, .markdown-preview h3,
@@ -919,6 +926,7 @@ body.wo-col-resizing .sidebar, body.wo-col-resizing .right-sidebar { transition:
   border: 1px solid var(--bg-modifier-border); border-radius: var(--radius-s);
   background: var(--bg-secondary); color: var(--text-normal); cursor: pointer; font-size: 14px; line-height: 1; }
 .font-size-step:hover { background: var(--bg-modifier-active); }
+.font-size-sub { margin: 12px 0 6px; font-size: var(--font-ui-smaller); color: var(--text-faint); }
 .font-size-foot { display: flex; align-items: center; justify-content: space-between; margin-top: 10px; }
 .font-size-value { color: var(--text-muted); font-variant-numeric: tabular-nums; }
 
@@ -1131,6 +1139,7 @@ body.wo-col-resizing .sidebar, body.wo-col-resizing .right-sidebar { transition:
   .app.mobile { --file-margins: 14px; }
   .markdown-preview { padding: 18px 14px 40vh; }
   .markdown-preview .preview-inner { max-width: 100%; }
+  .markdown-source-view.is-readable-line-width .cm-content { max-width: 100%; }
 
   /* The status bar would fight the mobile toolbar for the bottom edge. */
   .app.mobile .status-bar { display: none; }

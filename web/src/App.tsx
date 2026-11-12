@@ -15,7 +15,7 @@ import TrashView from './components/TrashView';
 import ContextMenu from './components/ContextMenu';
 import FolderPicker from './components/FolderPicker';
 import { loadPlugins } from './lib/plugins';
-import { applyFontSize, readStoredFontSize, setCursorScrollEnabled } from './lib/readingComfort';
+import { applyFontSize, readStoredFontSize, setCursorScrollEnabled, applyLineWidth, readStoredLineWidth } from './lib/readingComfort';
 import { initUrlSync } from './lib/urlsync';
 import { useIsMobile } from './lib/useIsMobile';
 
@@ -72,8 +72,16 @@ export default function App() {
         // server (same place the theme does) instead of local storage only.
         setCursorScrollEnabled(Boolean(s?.ui?.cursorScroll));
         applyFontSize(Number(s?.ui?.fontSize) || readStoredFontSize());
+        applyLineWidth(Number(s?.ui?.lineWidth) || readStoredLineWidth());
+        // The status-bar control mounts before this request resolves and seeds
+        // itself from the CSS variables, so tell it they just changed.
+        window.dispatchEvent(new Event('webobsidian:font-size'));
       })
-      .catch(() => applyFontSize(readStoredFontSize()));
+      .catch(() => {
+        applyFontSize(readStoredFontSize());
+        applyLineWidth(readStoredLineWidth());
+        window.dispatchEvent(new Event('webobsidian:font-size'));
+      });
     useStore.getState().loadShares(); // badge shared notes in the file tree
     loadPlugins().catch(() => {});
     // websocket live updates

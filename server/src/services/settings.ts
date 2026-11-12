@@ -75,6 +75,9 @@ const SettingsSchema = z.object({
       fontSize: z.number().min(10).max(32).default(16),
       // Cursor Scrolling: the wheel moves the caret instead of the viewport.
       cursorScroll: z.boolean().default(false),
+      // Text column width, in ch (characters of the note font). Kept in ch so
+      // the measure stays constant when fontSize changes.
+      lineWidth: z.number().min(45).max(200).default(90),
     })
     .default({}),
   plugins: z

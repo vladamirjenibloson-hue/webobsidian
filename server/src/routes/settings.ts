@@ -52,6 +52,8 @@ settingsRouter.put(
         const size = Number(ui.fontSize);
         if (Number.isFinite(size) && size >= 10 && size <= 32) d.ui.fontSize = Math.round(size);
         if (typeof ui.cursorScroll === 'boolean') d.ui.cursorScroll = ui.cursorScroll;
+        const width = Number(ui.lineWidth);
+        if (Number.isFinite(width) && width >= 45 && width <= 200) d.ui.lineWidth = Math.round(width);
       }
       if (body.api && typeof body.api.rateLimitPerMin === 'number') {
         d.api.rateLimitPerMin = body.api.rateLimitPerMin;
