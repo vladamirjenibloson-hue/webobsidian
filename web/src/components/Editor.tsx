@@ -41,6 +41,7 @@ import {
 import { renderMarkdown } from '../lib/markdown';
 import { setActiveEditor } from '../lib/activeEditor';
 import { autoRtl } from '../lib/rtl';
+import { cursorScroll, cursorScrollWheelPlugin } from '../lib/readingComfort';
 import { api } from '../lib/api';
 
 const titleOf = (path: string | null) =>
@@ -274,6 +275,10 @@ export default function Editor() {
         syntaxHighlighting(obsidianHighlightStyle),
         EditorView.lineWrapping,
         autoRtl,
+        // Cursor Scrolling: wheel walks the caret instead of the viewport.
+        // Inert until switched on in Appearance; ignored in Reading mode.
+        cursorScroll,
+        cursorScrollWheelPlugin,
         // Live Preview drives BOTH live and reading; reading is just read-only.
         livePreviewState.init(() => isMd && viewMode !== 'source'),
         livePreviewReadonly.init(() => viewMode === 'reading'),

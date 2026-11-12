@@ -39,7 +39,20 @@ settingsRouter.put(
         if (typeof token === 'string' && token && token !== '••••••••') d.git.token = token;
       }
       if (body.search) Object.assign(d.search, body.search);
-      if (body.ui) Object.assign(d.ui, body.ui);
+      if (body.ui) {
+        // ui.* is persisted and re-parsed by the schema on the next boot, so a
+        // bad value here (a string fontSize, an unknown theme) would make every
+        // later getSettings() throw. Validate field by field instead of
+        // Object.assign-ing whatever arrived.
+        const ui = body.ui;
+        if (ui.theme === 'obsidian-dark' || ui.theme === 'obsidian-light') d.ui.theme = ui.theme;
+        if (ui.defaultView === 'live' || ui.defaultView === 'source' || ui.defaultView === 'reading') {
+          d.ui.defaultView = ui.defaultView;
+        }
+        const size = Number(ui.fontSize);
+        if (Number.isFinite(size) && size >= 10 && size <= 32) d.ui.fontSize = Math.round(size);
+        if (typeof ui.cursorScroll === 'boolean') d.ui.cursorScroll = ui.cursorScroll;
+      }
       if (body.api && typeof body.api.rateLimitPerMin === 'number') {
         d.api.rateLimitPerMin = body.api.rateLimitPerMin;
       }

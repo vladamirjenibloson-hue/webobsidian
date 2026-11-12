@@ -15,6 +15,7 @@ import TrashView from './components/TrashView';
 import ContextMenu from './components/ContextMenu';
 import FolderPicker from './components/FolderPicker';
 import { loadPlugins } from './lib/plugins';
+import { applyFontSize, readStoredFontSize, setCursorScrollEnabled } from './lib/readingComfort';
 import { initUrlSync } from './lib/urlsync';
 import { useIsMobile } from './lib/useIsMobile';
 
@@ -65,8 +66,14 @@ export default function App() {
       .catch(() => {});
     api
       .getSettings()
-      .then((s) => setTheme(s?.ui?.theme === 'obsidian-dark' ? 'theme-dark' : 'theme-light'))
-      .catch(() => {});
+      .then((s) => {
+        setTheme(s?.ui?.theme === 'obsidian-dark' ? 'theme-dark' : 'theme-light');
+        // Cursor Scrolling + note font size live in ui.* so they survive on the
+        // server (same place the theme does) instead of local storage only.
+        setCursorScrollEnabled(Boolean(s?.ui?.cursorScroll));
+        applyFontSize(Number(s?.ui?.fontSize) || readStoredFontSize());
+      })
+      .catch(() => applyFontSize(readStoredFontSize()));
     useStore.getState().loadShares(); // badge shared notes in the file tree
     loadPlugins().catch(() => {});
     // websocket live updates

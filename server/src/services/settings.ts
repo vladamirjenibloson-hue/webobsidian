@@ -71,6 +71,10 @@ const SettingsSchema = z.object({
     .object({
       theme: z.enum(['obsidian-dark', 'obsidian-light']).default('obsidian-light'),
       defaultView: z.enum(['live', 'source', 'reading']).default('live'),
+      // Note text size in px (Font Slider). Clamped client-side too.
+      fontSize: z.number().min(10).max(32).default(16),
+      // Cursor Scrolling: the wheel moves the caret instead of the viewport.
+      cursorScroll: z.boolean().default(false),
     })
     .default({}),
   plugins: z

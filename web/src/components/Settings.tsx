@@ -2,6 +2,15 @@ import { useEffect, useRef, useState } from 'react';
 import { useStore } from '../lib/store';
 import { api } from '../lib/api';
 import Icon from './Icon';
+import {
+  applyFontSize,
+  storeFontSize,
+  readStoredFontSize,
+  setCursorScrollEnabled,
+  FONT_SIZE_MIN,
+  FONT_SIZE_MAX,
+  FONT_SIZE_DEFAULT,
+} from '../lib/readingComfort';
 
 type Section = 'vault' | 'git' | 'api' | 'sharing' | 'plugins' | 'appearance' | 'account' | 'about';
 
@@ -393,6 +402,25 @@ function Plugins() {
 function Appearance({ s }: { s: any }) {
   const [theme, setTheme] = useState(s.ui.theme);
   const save = async (t: string) => { setTheme(t); await api.putSettings({ ui: { theme: t } }); location.reload(); };
+
+  // Font size applies live (no reload) and persists once you stop dragging.
+  const [fontSize, setFontSize] = useState<number>(Number(s.ui.fontSize) || readStoredFontSize());
+  const fontTimer = useRef<number | undefined>(undefined);
+  const changeFontSize = (n: number) => {
+    const size = applyFontSize(n);
+    setFontSize(size);
+    storeFontSize(size);
+    window.clearTimeout(fontTimer.current);
+    fontTimer.current = window.setTimeout(() => void api.putSettings({ ui: { fontSize: size } }), 400);
+  };
+
+  const [cursorScroll, setCursorScroll] = useState<boolean>(Boolean(s.ui.cursorScroll));
+  const toggleCursorScroll = async (on: boolean) => {
+    setCursorScroll(on);
+    setCursorScrollEnabled(on);
+    await api.putSettings({ ui: { cursorScroll: on } });
+  };
+
   return (
     <div>
       <h2>Appearance</h2>
@@ -401,6 +429,34 @@ function Appearance({ s }: { s: any }) {
           <option value="obsidian-dark">Obsidian Dark</option>
           <option value="obsidian-light">Obsidian Light</option>
         </select>
+      </Row>
+      <Row name="Note font size" desc="Text size in the editor and reading view. Headings scale with it.">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+          <input
+            type="range"
+            min={FONT_SIZE_MIN}
+            max={FONT_SIZE_MAX}
+            step={1}
+            value={fontSize}
+            style={{ width: 160, accentColor: 'var(--interactive-accent)' }}
+            onChange={(e) => changeFontSize(Number(e.target.value))}
+          />
+          <span style={{ minWidth: 44, color: 'var(--text-muted)', fontVariantNumeric: 'tabular-nums' }}>
+            {fontSize}px
+          </span>
+          <button className="text-button" onClick={() => changeFontSize(FONT_SIZE_DEFAULT)}>
+            Reset
+          </button>
+        </div>
+      </Row>
+      <Row
+        name="Cursor scrolling"
+        desc="Scrolling with the wheel moves the caret line by line instead of the page. Ignored in Reading mode."
+      >
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+          <input type="checkbox" checked={cursorScroll} onChange={(e) => void toggleCursorScroll(e.target.checked)} />
+          enabled
+        </label>
       </Row>
     </div>
   );
